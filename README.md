@@ -55,9 +55,7 @@ Headers:
 Response:
 ```json
 {
-  "version": {
-    "number": "integer"
-  }
+  "version": "integer"
 }
 ```
 
