@@ -1,24 +1,82 @@
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fhello-world&demo-title=Python%20Hello%20World&demo-description=Use%20Python%20on%20Vercel%20with%20Serverless%20Functions%20using%20the%20Python%20Runtime.&demo-url=https%3A%2F%2Fpython-hello-world.vercel.app%2F&demo-image=https://assets.vercel.com/image/upload/v1669994600/random/python.png)
+# Confluence Page API
 
-# Python Hello World
+This project provides a serverless API for interacting with Confluence pages. Built with Python and deployed on Vercel, it offers endpoints to fetch and parse Confluence page content and version information.
 
-This example shows how to use Python on Vercel with Serverless Functions using the [Python Runtime](https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/python).
+## Features
 
-## Demo
+- **Page Content API**: Fetches and parses Confluence page content into a structured format
+- **Version API**: Retrieves version information for Confluence pages
+- **Base URL Configuration**: Configurable Confluence base URL through headers
+- **Authentication Support**: Handles Confluence authentication through headers
 
-https://python-hello-world.vercel.app/
+## API Endpoints
+
+### Get Page Content
+```
+GET /api/pages/{pageId}
+```
+Headers:
+- `X-Base-Url`: Your Confluence base URL (required)
+- `Authorization`: Your authentication token (optional)
+
+Response:
+```json
+[
+  {
+    "category": "string",
+    "webs": [
+      {
+        "Icon": "string",
+        "Title": "string",
+        "Description": "string",
+        "Tags": ["string"],
+        "Link": "string",
+        "SubLinks": [
+          {
+            "Title": "string",
+            "Link": "string"
+          }
+        ],
+        "Category": "string"
+      }
+    ]
+  }
+]
+```
+
+### Get Page Version
+```
+GET /api/pages/{pageId}/version
+```
+Headers:
+- `X-Base-Url`: Your Confluence base URL (required)
+- `Authorization`: Your authentication token (optional)
+
+Response:
+```json
+{
+  "version": {
+    "number": "integer"
+  }
+}
+```
 
 ## Running Locally
 
+1. Install Vercel CLI:
 ```bash
 npm i -g vercel
+```
+
+2. Run the development server:
+```bash
 vercel dev
 ```
 
-Your Python API is now available at `http://localhost:3000/api`.
+The API will be available at `http://localhost:3000/api`.
 
-## One-Click Deploy
+## Deployment
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
+Deploy to Vercel with one click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fhello-world&demo-title=Python%20Hello%20World&demo-description=Use%20Python%20on%20Vercel%20with%20Serverless%20Functions%20using%20the%20Python%20Runtime.&demo-url=https%3A%2F%2Fpython-hello-world.vercel.app%2F&demo-image=https://assets.vercel.com/image/upload/v1669994600/random/python.png)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fexamples%2Ftree%2Fmain%2Fpython%2Fconfluence-page-api)
