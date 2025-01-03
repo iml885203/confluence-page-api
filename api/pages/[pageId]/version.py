@@ -4,8 +4,7 @@ from api.services.confluence_proxy import ConfluenceProxy
 
 class handler(BaseConfluenceHandler):
     def do_OPTIONS(self):
-        self.send_response(200)
-        self.process_request()
+        self.send_success_response('')
         
     def do_GET(self):
         # parse url to get pageId

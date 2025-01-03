@@ -91,8 +91,7 @@ def parse_content(page_html: str) -> List[CategoryWeb]:
 
 class handler(BaseConfluenceHandler):
     def do_OPTIONS(self):
-        self.send_response(200)
-        self.process_request()
+        self.send_success_response('')
         
     def do_GET(self):
         # Parse URL more elegantly
