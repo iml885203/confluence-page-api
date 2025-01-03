@@ -3,6 +3,10 @@ from api.handlers.base_handler import BaseConfluenceHandler
 from api.services.confluence_proxy import ConfluenceProxy
 
 class handler(BaseConfluenceHandler):
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.process_request()
+        
     def do_GET(self):
         # parse url to get pageId
         parsed_url = urlparse(self.path)
