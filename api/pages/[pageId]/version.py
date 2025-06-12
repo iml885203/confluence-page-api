@@ -1,4 +1,3 @@
-from urllib.parse import urlparse
 from api.handlers.base_handler import BaseConfluenceHandler
 from api.services.confluence_proxy import ConfluenceProxy
 
@@ -7,15 +6,11 @@ class handler(BaseConfluenceHandler):
         self.send_success_response('')
         
     def do_GET(self):
-        # parse url to get pageId
-        parsed_url = urlparse(self.path)
-        page_id = parsed_url.path.split('/')[-2]  # get pageId from /[pageId]/version
-        
-        # get and validate headers
-        result = self.get_headers_and_validate()
+        # Get page ID and validate headers
+        result = self.get_page_context(page_id_position=-2)  # pageId is the second-to-last segment in the path
         if not result:
             return
-        base_url, headers = result
+        page_id, base_url, headers = result
         
         try:
             # use proxy to get version info

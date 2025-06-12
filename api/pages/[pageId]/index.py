@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup
 from typing import List, Dict
 from dataclasses import dataclass, asdict
 import json
-from urllib.parse import urlparse
 from api.handlers.base_handler import BaseConfluenceHandler
 from api.services.confluence_proxy import ConfluenceProxy
 
@@ -94,15 +93,11 @@ class handler(BaseConfluenceHandler):
         self.send_success_response('')
         
     def do_GET(self):
-        # Parse URL more elegantly
-        parsed_url = urlparse(self.path)
-        page_id = parsed_url.path.split('/')[-1]
-        
-        # get and validate headers
-        result = self.get_headers_and_validate()
+        # Get page ID and validate headers
+        result = self.get_page_context()  # pageId is the last segment in the path
         if not result:
             return
-        base_url, headers = result
+        page_id, base_url, headers = result
 
         try:
             # Use the proxy to get page content
