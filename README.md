@@ -59,19 +59,85 @@ Response:
 }
 ```
 
-## Running Locally
+## Setup & Development
 
-1. Install Vercel CLI:
+### Prerequisites
+- Python 3.8+
+- Node.js (for Vercel CLI)
+
+### Local Setup
+
+1. **Clone the repository:**
+```bash
+git clone <repository-url>
+cd confluence-page-api
+```
+
+2. **Set up Python virtual environment:**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies:**
+```bash
+pip install -r requirements.txt
+pip install -r requirements-test.txt
+```
+
+4. **Install Vercel CLI:**
 ```bash
 npm i -g vercel
 ```
 
-2. Run the development server:
+### Running Locally
+
+1. **Start the development server:**
 ```bash
 vercel dev
 ```
 
 The API will be available at `http://localhost:3000/api`.
+
+### Running Tests
+
+**Run all tests:**
+```bash
+pytest tests/ -v
+```
+
+**Run specific test types:**
+```bash
+# Endpoint structure tests
+pytest tests/test_vercel_endpoints.py -v
+
+# Service layer tests
+pytest tests/unit/test_confluence_proxy.py -v
+```
+
+**Run tests with coverage:**
+```bash
+pytest tests/ --cov=api --cov-report=term-missing --cov-report=html:htmlcov
+```
+
+**Live server testing:**
+```bash
+# Start vercel dev in one terminal
+vercel dev
+
+# Run live tests in another terminal
+python tests/run_vercel_tests.py
+```
+
+### Test Structure
+
+The project uses a Vercel-compatible testing approach:
+
+- **`tests/test_vercel_endpoints.py`** - HTTP endpoint structure validation
+- **`tests/unit/test_confluence_proxy.py`** - Service layer unit tests
+- **`tests/run_vercel_tests.py`** - Live server integration test runner
+
+Tests avoid importing from `[pageId]` directories (Vercel dynamic routes) and instead test the HTTP interface, which is the recommended approach for serverless functions.
 
 ## Deployment
 
