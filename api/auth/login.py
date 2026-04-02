@@ -30,6 +30,11 @@ class handler(BaseHTTPRequestHandler):
 
         default_redirect = get_default_redirect_uri(self.headers)
         redirect_uri = query_params.get("redirect_uri", [None])[0]
+        response_mode = query_params.get("response_mode", ["fragment"])[0]
+
+        if response_mode not in ("query", "fragment"):
+            self._send_error(400, "response_mode must be 'query' or 'fragment'")
+            return
 
         if redirect_uri:
             if not is_allowed_redirect(redirect_uri, config):
@@ -42,6 +47,7 @@ class handler(BaseHTTPRequestHandler):
         state = jwt.encode(
             {
                 "redirect_uri": redirect_uri,
+                "response_mode": response_mode,
                 "nonce": secrets.token_hex(16),
                 "exp": now + 600,
                 "iat": now,

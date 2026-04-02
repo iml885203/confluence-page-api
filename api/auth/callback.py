@@ -88,8 +88,14 @@ class handler(BaseHTTPRequestHandler):
             self._send_error(502, "Token exchange failed")
             return
 
-        fragment_params = urlencode(format_token_response(token_response.json()))
-        spa_redirect = f"{redirect_uri}#{fragment_params}"
+        response_mode = state_payload.get("response_mode", "fragment")
+        token_params = urlencode(format_token_response(token_response.json()))
+
+        if response_mode == "query":
+            separator = "&" if "?" in redirect_uri else "?"
+            spa_redirect = f"{redirect_uri}{separator}{token_params}"
+        else:
+            spa_redirect = f"{redirect_uri}#{token_params}"
 
         self.send_response(302)
         self.send_header("Location", spa_redirect)
