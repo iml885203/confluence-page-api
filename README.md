@@ -6,8 +6,9 @@ This project provides a serverless API for interacting with Confluence pages. Bu
 
 - **Page Content API**: Fetches and parses Confluence page content into a structured format
 - **Version API**: Retrieves version information for Confluence pages
+- **OAuth 2.0 Authentication**: Atlassian OAuth 2.0 (3LO) flow for SPA integration
 - **Base URL Configuration**: Configurable Confluence base URL through headers
-- **Authentication Support**: Handles Confluence authentication through headers
+- **Pass-through Authentication**: Forwards authentication headers to Confluence APIs
 
 ## API Endpoints
 
@@ -59,6 +60,60 @@ Response:
 }
 ```
 
+### OAuth 2.0 Endpoints
+
+#### Start OAuth Login
+```
+GET /api/auth/login?redirect_uri={spa_url}
+```
+Redirects the user to Atlassian's authorization page. The `redirect_uri` parameter is optional — if omitted, the user is redirected to `/api/auth/success` after authorization. If provided, the origin must be listed in `ALLOWED_REDIRECT_ORIGINS`.
+
+#### OAuth Callback
+```
+GET /api/auth/callback
+```
+Handles the Atlassian OAuth callback. Exchanges the authorization code for tokens and redirects to the target URL with `#access_token=...&refresh_token=...&expires_in=...`.
+
+#### Refresh Token
+```
+POST /api/auth/refresh
+```
+Body:
+```json
+{ "refresh_token": "..." }
+```
+Response:
+```json
+{
+  "access_token": "string",
+  "refresh_token": "string",
+  "expires_in": 3600,
+  "token_type": "Bearer"
+}
+```
+
+#### Get Accessible Resources
+```
+GET /api/auth/resources
+```
+Headers:
+- `Authorization`: Bearer token from OAuth flow
+
+Returns the list of Confluence sites the user can access. Use the `id` field as `cloudId` to construct `X-Base-Url: https://api.atlassian.com/ex/confluence/{cloudId}`.
+
+Response:
+```json
+[
+  {
+    "id": "cloud-id",
+    "name": "site-name",
+    "url": "https://site.atlassian.net",
+    "scopes": ["..."],
+    "avatarUrl": "..."
+  }
+]
+```
+
 ## Setup & Development
 
 ### Prerequisites
@@ -73,22 +128,32 @@ git clone <repository-url>
 cd confluence-page-api
 ```
 
-2. **Set up Python virtual environment:**
+2. **Install dependencies:**
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+uv sync
 ```
 
-3. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-pip install -r requirements-test.txt
-```
+> If you don't have `uv`, install it with `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-4. **Install Vercel CLI:**
+3. **Install Vercel CLI:**
 ```bash
 npm i -g vercel
 ```
+
+4. **Set up environment variables (for OAuth):**
+
+Copy `.env.example` and fill in your values:
+```bash
+cp .env.example .env
+```
+```env
+ATLASSIAN_CLIENT_ID=your_client_id
+ATLASSIAN_CLIENT_SECRET=your_client_secret
+STATE_SECRET=any_random_secret_string
+ALLOWED_REDIRECT_ORIGINS=http://localhost:5173
+```
+
+Register your OAuth 2.0 app at [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/) with callback URL `http://localhost:3000/api/auth/callback`.
 
 ### Running Locally
 
@@ -103,21 +168,21 @@ The API will be available at `http://localhost:3000/api`.
 
 **Run all tests:**
 ```bash
-pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 **Run specific test types:**
 ```bash
 # Endpoint structure tests
-pytest tests/test_vercel_endpoints.py -v
+uv run pytest tests/test_vercel_endpoints.py -v
 
 # Service layer tests
-pytest tests/unit/test_confluence_proxy.py -v
+uv run pytest tests/unit/test_confluence_proxy.py -v
 ```
 
 **Run tests with coverage:**
 ```bash
-pytest tests/ --cov=api --cov-report=term-missing --cov-report=html:htmlcov
+uv run pytest tests/ --cov=api --cov-report=term-missing --cov-report=html:htmlcov
 ```
 
 **Live server testing:**

@@ -9,32 +9,21 @@ This is a serverless Python API for Confluence page operations deployed on Verce
 **Key Components:**
 - `api/handlers/base_handler.py`: Base HTTP handler class providing common functionality for authentication, header validation, and response handling
 - `api/services/confluence_proxy.py`: Service layer for Confluence API interactions with pagination support
+- `api/services/oauth_config.py`: Shared OAuth 2.0 configuration, constants, and helper functions
 - `api/pages/[pageId]/`: Dynamic route handlers for page-specific operations
-- `api/proxy/pages/[pageId].py`: Proxy endpoint for direct page access
+- `api/auth/`: OAuth 2.0 (3LO) endpoints for Atlassian authentication
 
 **Data Models:**
 - `PageVersion`: Represents page version metadata (version, authorId, createdAt)
 - `ConfluenceUser`: User information with avatar URLs
 
-## Common Commands
+## Dual Authentication Modes
 
-**Local Development:**
-```bash
-vercel dev
-```
-The API will be available at `http://localhost:3000/api`.
+The API supports two authentication modes simultaneously:
 
-**Dependencies:**
-- Python dependencies are managed via `requirements.txt`
-- Install with: `pip install -r requirements.txt`
+1. **Pass-through (legacy)**: Client sends `X-Base-Url` (direct Confluence URL) + `Authorization` header. The API forwards credentials to Confluence as-is.
 
-## API Authentication & Headers
-
-All endpoints require the `X-Base-Url` header containing the Confluence base URL. Authentication is handled via the optional `Authorization` header passed through to Confluence APIs.
-
-**Required Headers:**
-- `X-Base-Url`: Confluence instance base URL
-- `Authorization`: (Optional) Authentication token
+2. **OAuth 2.0**: Client obtains token via `/api/auth/login` flow, then sends `X-Base-Url: https://api.atlassian.com/ex/confluence/{cloudId}` + `Authorization: Bearer {token}`. The existing `ConfluenceProxy` works unchanged because the gateway URL follows the same `{base_url}/wiki/api/v2/...` pattern.
 
 ## Confluence API Integration
 
@@ -43,7 +32,3 @@ The `ConfluenceProxy` class handles all Confluence API v2 interactions:
 - Implements pagination for version history (250 items per page)
 - Supports bulk user lookups
 - Handles connection errors gracefully
-
-## Deployment
-
-Deployed on Vercel with CORS enabled for all origins. The `vercel.json` configuration handles redirects and cross-origin headers.
