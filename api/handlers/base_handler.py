@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 from typing import Dict, Any, Optional, Tuple
 from urllib.parse import urlparse
-from api.services.confluence_proxy import ConfluenceProxy
+from api.services.confluence_proxy import ConfluenceApiError, ConfluenceProxy
 
 class BaseConfluenceHandler(BaseHTTPRequestHandler):
     def get_headers_and_validate(self) -> Optional[Tuple[str, Dict[str, str]]]:
@@ -58,6 +58,13 @@ class BaseConfluenceHandler(BaseHTTPRequestHandler):
         base_url, headers = result
         return page_id, base_url, headers
     
+    def handle_confluence_error(self, e: Exception) -> None:
+        """Handle exceptions from Confluence API calls"""
+        if isinstance(e, ConfluenceApiError):
+            self.send_error_response(e.status_code, e.message)
+        else:
+            self.send_error_response(500, str(e))
+
     def send_error_response(self, status_code: int, message: str) -> None:
         """Send error response with given status code and message"""
         self.send_response(status_code)

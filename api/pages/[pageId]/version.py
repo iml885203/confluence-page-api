@@ -21,4 +21,4 @@ class handler(BaseConfluenceHandler):
             self.send_success_response({'version': version_info})
             
         except Exception as e:
-            self.send_error_response(500, str(e))
+            self.handle_confluence_error(e)
