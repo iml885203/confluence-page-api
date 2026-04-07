@@ -7,6 +7,10 @@ from api.services.oauth_config import REQUEST_TIMEOUT, RESOURCES_URL
 
 
 class handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
+
     def do_GET(self):
         auth_header = self.headers.get("Authorization")
 

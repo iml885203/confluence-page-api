@@ -14,6 +14,10 @@ MAX_BODY_SIZE = 8192
 
 
 class handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
+
     def do_POST(self):
         try:
             config = get_oauth_config()
