@@ -5,7 +5,7 @@ AUTHORIZE_URL = "https://auth.atlassian.com/authorize"
 TOKEN_URL = "https://auth.atlassian.com/oauth/token"
 RESOURCES_URL = "https://api.atlassian.com/oauth/token/accessible-resources"
 
-SCOPES = "read:page:confluence read:content-details:confluence read:user:confluence offline_access"
+SCOPES = "read:me read:page:confluence read:content-details:confluence read:user:confluence offline_access"
 JWT_ALGORITHM = "HS256"
 REQUEST_TIMEOUT = 10
 

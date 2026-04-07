@@ -30,38 +30,44 @@ class handler(BaseHTTPRequestHandler):
 
         default_redirect = get_default_redirect_uri(self.headers)
 
+        code = query_params.get("code", [None])[0]
+        state = query_params.get("state", [None])[0]
+
+        # Parse state to extract redirect_uri and response_mode
+        redirect_uri = default_redirect
+        response_mode = "fragment"
+        state_valid = False
+        if state:
+            try:
+                state_payload = jwt.decode(
+                    state, config["state_secret"], algorithms=[JWT_ALGORITHM]
+                )
+                redirect_uri = state_payload.get("redirect_uri", default_redirect)
+                response_mode = state_payload.get("response_mode", "fragment")
+                if redirect_uri != default_redirect and not is_allowed_redirect(redirect_uri, config):
+                    redirect_uri = default_redirect
+                state_valid = True
+            except jwt.ExpiredSignatureError:
+                pass
+            except jwt.InvalidTokenError:
+                pass
+
         error = query_params.get("error", [None])[0]
         if error:
             error_desc = query_params.get("error_description", [error])[0]
-            error_redirect = f"{default_redirect}#error={quote(error_desc)}"
+            error_param = f"error={quote(error_desc)}"
+            if response_mode == "query":
+                separator = "&" if "?" in redirect_uri else "?"
+                error_redirect = f"{redirect_uri}{separator}{error_param}"
+            else:
+                error_redirect = f"{redirect_uri}#{error_param}"
             self.send_response(302)
             self.send_header("Location", error_redirect)
             self.end_headers()
             return
 
-        code = query_params.get("code", [None])[0]
-        state = query_params.get("state", [None])[0]
-
-        if not code or not state:
-            self._send_error(400, "Missing code or state parameter")
-            return
-
-        try:
-            state_payload = jwt.decode(
-                state, config["state_secret"], algorithms=[JWT_ALGORITHM]
-            )
-        except jwt.ExpiredSignatureError:
-            self._send_error(400, "State token expired, please try again")
-            return
-        except jwt.InvalidTokenError:
-            self._send_error(400, "Invalid state token")
-            return
-
-        redirect_uri = state_payload.get("redirect_uri", default_redirect)
-
-        # Validate redirect_uri unless it's our own default success page
-        if redirect_uri != default_redirect and not is_allowed_redirect(redirect_uri, config):
-            self._send_error(400, "Invalid redirect_uri in state")
+        if not code or not state_valid:
+            self._send_error(400, "Missing or invalid code/state parameter")
             return
 
         try:
@@ -88,7 +94,6 @@ class handler(BaseHTTPRequestHandler):
             self._send_error(502, "Token exchange failed")
             return
 
-        response_mode = state_payload.get("response_mode", "fragment")
         token_params = urlencode(format_token_response(token_response.json()))
 
         if response_mode == "query":
